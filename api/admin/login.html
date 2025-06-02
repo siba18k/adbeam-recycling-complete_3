@@ -1,0 +1,24 @@
+<form id="adminLogin">
+  <input type="email" id="adminEmail" required />
+  <input type="password" id="adminPassword" required />
+  <button>Login</button>
+</form>
+
+<script>
+  document.getElementById('adminLogin').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('adminEmail').value;
+    const password = document.getElementById('adminPassword').value;
+
+    const res = await fetch('/api/auth/login.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ email, password })
+    });
+
+    const data = await res.json();
+    if (data.success) window.location.href = 'index.html';
+    else alert(data.message);
+  });
+</script>

@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Adbeam Admin Dashboard</title>
+    <link rel="stylesheet" href="../../assets/index.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <style>
+      .admin-layout {
+        display: flex;
+        min-height: 100vh;
+      }
+
+      .admin-sidebar {
+        width: 280px;
+        background: linear-gradient(180deg, #0a2540 0%, #1a365d 100%);
+        color: white;
+        position: fixed;
+        height: 100vh;
+        overflow-y: auto;
+        z-index: 1000;
+      }
+
+      .sidebar-header {
+        padding: 2rem 1.5rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        text-align: center;
+      }
+
+      .sidebar-logo {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: white;
+        text-decoration: none;
+      }
+
+      .sidebar-logo-icon {
+        width: 40px;
+        height: 40px;
+        background: var(--primary-gradient);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+      }
+
+      .sidebar-nav {
+        padding: 1rem 0;
+      }
+
+      .nav-section {
+        margin-bottom: 2rem;
+      }
+
+      .nav-section-title {
+        padding: 0 1.5rem 0.5rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: rgba(255, 255, 255, 0.6);
+      }
+
+      .nav-item {
+        margin-bottom: 0.25rem;
+      }
+
+      .nav-link {
+        display: flex;
+        align-items: center;
+        padding: 0.875rem 1.5rem;
+        color: rgba(255, 255, 255, 0.8);
+        text-decoration: none;
+        transition: all 0.3s ease;
+        border-left: 3px solid transparent;
+      }
+
+      .nav-link:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+        border-left-color: var(--primary-color);
+      }
+
+      .nav-link.active {
+        background: rgba(46, 204, 113, 0.2);
+        color: white;
+        border-left-color: var(--primary-color);
+      }
+
+      .nav-link i {
+        width: 20px;
+        margin-right: 0.75rem;
+        font-size: 1.1rem;
+      }
+
+      .admin-main {
+        flex: 1;
+        margin-left: 280px;
+        background: var(--lightest-gray);
+      }
+
+      .admin-header {
+        background: white;
+        padding: 1rem 2rem;
+        border-bottom: 1px solid var(--light-gray);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+      }
+
+      .admin-title {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: var(--text-color);
+        margin: 0;
+      }
+
+      .admin-user {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      .user-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--primary-gradient);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+      }
+
+      .user-info h4 {
+        font-size: 0.95rem;
+        font-weight: 600;
+        margin: 0;
+        color: var(--text-color);
+      }
+
+      .user-info p {
+        font-size: 0.8rem;
+        color: var(--light-text);
+        margin: 0;
+      }
+
+      .admin-content {
+        padding: 2rem;
+      }
+
+      .stats-overview {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+      }
+
+      .stat-card {
+        background: white;
+        border-radius: 16px;
+        padding: 2rem;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--light-gray);
+        transition: var(--transition);
+      }
+
+      .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+      }
+
+      .stat-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+      }
+
+      .stat-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: white;
+      }
+
+      .stat-icon.users {
+        background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+      }
+      .stat-icon.recycling {
+        background: linear-gradient(135deg, #10b981, #059669);
+      }
+      .stat-icon.rewards {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+      }
+      .stat-icon.impact {
+        background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+      }
+
+      .stat-value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--text-color);
+        margin-bottom: 0.5rem;
+      }
+
+      .stat-label {
+        color: var(--light-text);
+        font-size: 1rem;
+      }
+
+      .stat-change {
+        font-size: 0.875rem;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        margin-top: 0.5rem;
+      }
+
+      .change-positive {
+        color: var(--primary-color);
+      }
+
+      .change-negative {
+        color: #ef4444;
+      }
+
+      .admin-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 2rem;
+        margin-bottom: 2rem;
+      }
+
+      .admin-card {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--light-gray);
+      }
+
+      .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--light-gray);
+      }
+
+      .card-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--text-color);
+      }
+
+      .btn-sm {
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
+        border-radius: 8px;
+      }
+
+      .table-container {
+        overflow-x: auto;
+      }
+
+      .admin-table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      .admin-table th {
+        background: var(--lightest-gray);
+        padding: 1rem;
+        text-align: left;
+        font-weight: 600;
+        color: var(--text-color);
+        border-bottom: 1px solid var(--light-gray);
+      }
+
+      .admin-table td {
+        padding: 1rem;
+        border-bottom: 1px solid var(--light-gray);
+        vertical-align: middle;
+      }
+
+      .admin-table tr:hover {
+        background: var(--lightest-gray);
+      }
+
+      .status-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 50px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+      }
+
+      .status-active {
+        background: #dcfce7;
+        color: #166534;
+      }
+
+      .status-inactive {
+        background: #fef2f2;
+        color: #dc2626;
+      }
+
+      .status-pending {
+        background: #fef3c7;
+        color: #92400e;
+      }
+
+      .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+      }
+
+      .btn-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 6px;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: var(--transition);
+      }
+
+      .btn-edit {
+        background: #dbeafe;
+        color: #1d4ed8;
+      }
+
+      .btn-edit:hover {
+        background: #bfdbfe;
+      }
+
+      .btn-delete {
+        background: #fef2f2;
+        color: #dc2626;
+      }
+
+      .btn-delete:hover {
+        background: #fecaca;
+      }
+
+      .recent-activity {
+        max-height: 400px;
+        overflow-y: auto;
+      }
+
+      .activity-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem 0;
+        border-bottom: 1px solid var(--light-gray);
+      }
+
+      .activity-item:last-child {
+        border-bottom: none;
+      }
+
+      .activity-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--primary-light);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--primary-color);
+      }
+
+      .activity-content {
+        flex: 1;
+      }
+
+      .activity-title {
+        font-size: 0.95rem;
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+        color: var(--text-color);
+      }
+
+      .activity-time {
+        font-size: 0.8rem;
+        color: var(--light-text);
+      }
+
+      @media (max-width: 768px) {
+        .admin-sidebar {
+          transform: translateX(-100%);
+          transition: transform 0.3s ease;
+        }
+
+        .admin-sidebar.open {
+          transform: translateX(0);
+        }
+
+        .admin-main {
+          margin-left: 0;
+        }
+
+        .admin-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .stats-overview {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="admin-layout">
+      <aside class="admin-sidebar">
+        <div class="sidebar-header">
+          <a href="#" class="sidebar-logo">
+            <div class="sidebar-logo-icon">A</div>
+            Adbeam Admin
+          </a>
+        </div>
+
+        <nav class="sidebar-nav">
+          <div class="nav-section">
+            <div class="nav-section-title">Main</div>
+            <div class="nav-item">
+              <a href="#" class="nav-link active">
+                <i class="fas fa-chart-line"></i>
+                Dashboard
+              </a>
+            </div>
+            <div class="nav-item">
+              <a href="#" class="nav-link">
+                <i class="fas fa-users"></i>
+                User Management
+              </a>
+            </div>
+            <div class="nav-item">
+              <a href="#" class="nav-link">
+                <i class="fas fa-recycle"></i>
+                Recycling Data
+              </a>
+            </div>
+          </div>
+
+          <div class="nav-section">
+            <div class="nav-section-title">Rewards</div>
+            <div class="nav-item">
+              <a href="#" class="nav-link">
+                <i class="fas fa-gift"></i>
+                Reward Management
+              </a>
+            </div>
+            <div class="nav-item">
+              <a href="#" class="nav-link">
+                <i class="fas fa-tags"></i>
+                Categories
+              </a>
+            </div>
+            <div class="nav-item">
+              <a href="#" class="nav-link">
+                <i class="fas fa-history"></i>
+                Redemption History
+              </a>
+            </div>
+          </div>
+
+          <div class="nav-section">
+            <div class="nav-section-title">Analytics</div>
+            <div class="nav-item">
+              <a href="#" class="nav-link">
+                <i class="fas fa-chart-bar"></i>
+                Reports
+              </a>
+            </div>
+            <div class="nav-item">
+              <a href="#" class="nav-link">
+                <i class="fas fa-trophy"></i>
+                Leaderboards
+              </a>
+            </div>
+            <div class="nav-item">
+              <a href="#" class="nav-link">
+                <i class="fas fa-leaf"></i>
+                Environmental Impact
+              </a>
+            </div>
+          </div>
+
+          <div class="nav-section">
+            <div class="nav-section-title">System</div>
+            <div class="nav-item">
+              <a href="#" class="nav-link">
+                <i class="fas fa-cog"></i>
+                Settings
+              </a>
+            </div>
+            <div class="nav-item">
+              <a href="#" class="nav-link">
+                <i class="fas fa-shield-alt"></i>
+                Security
+              </a>
+            </div>
+          </div>
+        </nav>
+      </aside>
+
+      <main class="admin-main">
+        <header class="admin-header">
+          <h1 class="admin-title">Dashboard Overview</h1>
+          <div class="admin-user">
+            <div class="user-avatar">AD</div>
+            <div class="user-info">
+              <h4>Admin User</h4>
+              <p>System Administrator</p>
+            </div>
+          </div>
+        </header>
+
+        <div class="admin-content">
+          <div class="stats-overview">
+            <div class="stat-card">
+              <div class="stat-header">
+                <div>
+                  <div class="stat-value">2,847</div>
+                  <div class="stat-label">Total Users</div>
+                  <div class="stat-change change-positive">
+                    <i class="fas fa-arrow-up"></i>
+                    +12% this month
+                  </div>
+                </div>
+                <div class="stat-icon users">
+                  <i class="fas fa-users"></i>
+                </div>
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-header">
+                <div>
+                  <div class="stat-value">18,456</div>
+                  <div class="stat-label">Items Recycled</div>
+                  <div class="stat-change change-positive">
+                    <i class="fas fa-arrow-up"></i>
+                    +8% this week
+                  </div>
+                </div>
+                <div class="stat-icon recycling">
+                  <i class="fas fa-recycle"></i>
+                </div>
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-header">
+                <div>
+                  <div class="stat-value">1,234</div>
+                  <div class="stat-label">Rewards Redeemed</div>
+                  <div class="stat-change change-positive">
+                    <i class="fas fa-arrow-up"></i>
+                    +15% this month
+                  </div>
+                </div>
+                <div class="stat-icon rewards">
+                  <i class="fas fa-gift"></i>
+                </div>
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-header">
+                <div>
+                  <div class="stat-value">2.4 tons</div>
+                  <div class="stat-label">CO₂ Saved</div>
+                  <div class="stat-change change-positive">
+                    <i class="fas fa-leaf"></i>
+                    Environmental impact
+                  </div>
+                </div>
+                <div class="stat-icon impact">
+                  <i class="fas fa-globe"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="admin-grid">
+            <div class="admin-card">
+              <div class="card-header">
+                <h3 class="card-title">Recent Users</h3>
+                <button class="btn btn-primary btn-sm">
+                  <i class="fas fa-plus"></i>
+                  Add User
+                </button>
+              </div>
+
+              <div class="table-container">
+                <table class="admin-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>University</th>
+                      <th>Points</th>
+                      <th>Status</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <div
+                          style="
+                            display: flex;
+                            align-items: center;
+                            gap: 0.75rem;
+                          "
+                        >
+                          <div
+                            class="user-avatar"
+                            style="width: 32px; height: 32px; font-size: 0.8rem"
+                          >
+                            MJ
+                          </div>
+                          <div>
+                            <div style="font-weight: 600">Michael Johnson</div>
+                            <div
+                              style="
+                                font-size: 0.8rem;
+                                color: var(--light-text);
+                              "
+                            >
+                              michael@student.wits.ac.za
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td>University of the Witwatersrand</td>
+                      <td>3,156</td>
+                      <td>
+                        <span class="status-badge status-active">Active</span>
+                      </td>
+                      <td>
+                        <div class="action-buttons">
+                          <button class="btn-icon btn-edit">
+                            <i class="fas fa-edit"></i>
+                          </button>
+                          <button class="btn-icon btn-delete">
+                            <i class="fas fa-trash"></i>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <div
+                          style="
+                            display: flex;
+                            align-items: center;
+                            gap: 0.75rem;
+                          "
+                        >
+                          <div
+                            class="user-avatar"
+                            style="width: 32px; height: 32px; font-size: 0.8rem"
+                          >
+                            SA
+                          </div>
+                          <div>
+                            <div style="font-weight: 600">Sarah Adams</div>
+                            <div
+                              style="
+                                font-size: 0.8rem;
+                                color: var(--light-text);
+                              "
+                            >
+                              sarah@myuct.ac.za
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td>University of Cape Town</td>
+                      <td>2,847</td>
+                      <td>
+                        <span class="status-badge status-active">Active</span>
+                      </td>
+                      <td>
+                        <div class="action-buttons">
+                          <button class="btn-icon btn-edit">
+                            <i class="fas fa-edit"></i>
+                          </button>
+                          <button class="btn-icon btn-delete">
+                            <i class="fas fa-trash"></i>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <div
+                          style="
+                            display: flex;
+                            align-items: center;
+                            gap: 0.75rem;
+                          "
+                        >
+                          <div
+                            class="user-avatar"
+                            style="width: 32px; height: 32px; font-size: 0.8rem"
+                          >
+                            LM
+                          </div>
+                          <div>
+                            <div style="font-weight: 600">Lisa Martinez</div>
+                            <div
+                              style="
+                                font-size: 0.8rem;
+                                color: var(--light-text);
+                              "
+                            >
+                              lisa@sun.ac.za
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td>Stellenbosch University</td>
+                      <td>2,634</td>
+                      <td>
+                        <span class="status-badge status-pending">Pending</span>
+                      </td>
+                      <td>
+                        <div class="action-buttons">
+                          <button class="btn-icon btn-edit">
+                            <i class="fas fa-edit"></i>
+                          </button>
+                          <button class="btn-icon btn-delete">
+                            <i class="fas fa-trash"></i>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="admin-card">
+              <div class="card-header">
+                <h3 class="card-title">Recent Activity</h3>
+              </div>
+
+              <div class="recent-activity">
+                <div class="activity-item">
+                  <div class="activity-icon">
+                    <i class="fas fa-user-plus"></i>
+                  </div>
+                  <div class="activity-content">
+                    <div class="activity-title">New user registered</div>
+                    <div class="activity-time">2 minutes ago</div>
+                  </div>
+                </div>
+
+                <div class="activity-item">
+                  <div class="activity-icon">
+                    <i class="fas fa-recycle"></i>
+                  </div>
+                  <div class="activity-content">
+                    <div class="activity-title">Plastic bottle recycled</div>
+                    <div class="activity-time">5 minutes ago</div>
+                  </div>
+                </div>
+
+                <div class="activity-item">
+                  <div class="activity-icon">
+                    <i class="fas fa-gift"></i>
+                  </div>
+                  <div class="activity-content">
+                    <div class="activity-title">Reward redeemed</div>
+                    <div class="activity-time">10 minutes ago</div>
+                  </div>
+                </div>
+
+                <div class="activity-item">
+                  <div class="activity-icon">
+                    <i class="fas fa-trophy"></i>
+                  </div>
+                  <div class="activity-content">
+                    <div class="activity-title">Achievement unlocked</div>
+                    <div class="activity-time">15 minutes ago</div>
+                  </div>
+                </div>
+
+                <div class="activity-item">
+                  <div class="activity-icon">
+                    <i class="fas fa-newspaper"></i>
+                  </div>
+                  <div class="activity-content">
+                    <div class="activity-title">Paper recycled</div>
+                    <div class="activity-time">20 minutes ago</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../../assets/admin.js"></script>
+  </body>
+</html>

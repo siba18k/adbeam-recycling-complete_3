@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leaderboard | Adbeam</title>
+    <link rel="stylesheet" href="index.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .leaderboard-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            padding: 3rem 0;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .leaderboard-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 80%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+            animation: pulse 15s infinite alternate ease-in-out;
+        }
+
+        .leaderboard-header h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .leaderboard-header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+        .leaderboard-tabs {
+            background: white;
+            border-bottom: 1px solid var(--light-gray);
+            position: sticky;
+            top: 80px;
+            z-index: 100;
+        }
+
+        .tab-container {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            padding: 1rem 0;
+        }
+
+        .tab-btn {
+            padding: 0.75rem 2rem;
+            border: none;
+            background: transparent;
+            color: var(--light-text);
+            font-weight: 600;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .tab-btn.active {
+            color: var(--primary-color);
+            background: var(--primary-light);
+        }
+
+        .tab-btn:hover {
+            color: var(--primary-color);
+            background: var(--primary-light);
+        }
+
+        .leaderboard-content {
+            padding: 2rem 0;
+        }
+
+        .top-three {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 3rem;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .podium-card {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--light-gray);
+            position: relative;
+            transition: var(--transition);
+        }
+
+        .podium-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .podium-card.first {
+            order: 2;
+            transform: scale(1.1);
+            background: linear-gradient(135deg, #ffd700, #ffed4e);
+            color: #92400e;
+        }
+
+        .podium-card.second {
+            order: 1;
+            background: linear-gradient(135deg, #c0c0c0, #e5e7eb);
+            color: #374151;
+        }
+
+        .podium-card.third {
+            order: 3;
+            background: linear-gradient(135deg, #cd7f32, #d97706);
+            color: #92400e;
+        }
+
+        .podium-rank {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+
+        .podium-rank.first {
+            background: #ffd700;
+            color: #92400e;
+        }
+
+        .podium-rank.second {
+            background: #c0c0c0;
+            color: #374151;
+        }
+
+        .podium-rank.third {
+            background: #cd7f32;
+            color: #92400e;
+        }
+
+        .podium-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: var(--primary-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            font-size: 2rem;
+            color: white;
+            font-weight: 700;
+        }
+
+        .podium-name {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .podium-university {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-bottom: 1rem;
+        }
+
+        .podium-points {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .podium-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .leaderboard-list {
+            background: white;
+            border-radius: 16px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--light-gray);
+            overflow: hidden;
+        }
+
+        .leaderboard-item {
+            display: flex;
+            align-items: center;
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--light-gray);
+            transition: var(--transition);
+        }
+
+        .leaderboard-item:last-child {
+            border-bottom: none;
+        }
+
+        .leaderboard-item:hover {
+            background: var(--lightest-gray);
+        }
+
+        .item-rank {
+            width: 50px;
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .item-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--primary-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+            color: white;
+            font-weight: 700;
+        }
+
+        .item-info {
+            flex: 1;
+        }
+
+        .item-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-color);
+            margin-bottom: 0.25rem;
+        }
+
+        .item-university {
+            font-size: 0.9rem;
+            color: var(--light-text);
+        }
+
+        .item-stats {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text-color);
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--light-text);
+        }
+
+        .current-user {
+            background: var(--primary-light);
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .filter-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .filter-select {
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--light-gray);
+            border-radius: 8px;
+            background: white;
+            color: var(--text-color);
+            font-size: 0.9rem;
+        }
+
+        .search-box {
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--light-gray);
+            border-radius: 8px;
+            background: white;
+            color: var(--text-color);
+            font-size: 0.9rem;
+            width: 250px;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            .top-three {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .podium-card.first {
+                order: 1;
+                transform: none;
+            }
+
+            .podium-card.second {
+                order: 2;
+            }
+
+            .podium-card.third {
+                order: 3;
+            }
+
+            .leaderboard-header h1 {
+                font-size: 2rem;
+            }
+
+            .tab-container {
+                gap: 1rem;
+            }
+
+            .tab-btn {
+                padding: 0.5rem 1rem;
+                font-size: 0.9rem;
+            }
+
+            .item-stats {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .filter-section {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .search-box {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container header-content">
+            <a href="index.html" class="logo">
+                <div class="logo-icon">A</div>
+                Adbeam
+            </a>
+            <nav>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="dashboard.html">Recycling Tracker</a></li>
+                    <li><a href="recycling_guide.html">Recycling Guide</a></li>
+                    <li><a href="qr-scanner.html">QR Scanner</a></li>
+                    <li><a href="rewards.html">Rewards</a></li>
+                    <li><a href="leaderboard.html" class="active">Leaderboard</a></li>
+                    <li><a href="about.html">About</a></li>
+                </ul>
+            </nav>
+            <div class="auth-buttons">
+                <a href="dashboard.html" class="btn btn-primary me-2">Get started</a>
+                <button id="logoutBtn" class="btn btn-danger">Logout</button>
+            </div>
+        </div>
+    </header>
+
+    <div class="leaderboard-header">
+        <div class="container">
+            <h1><i class="fas fa-trophy"></i> Campus Leaderboard</h1>
+            <p>See how you rank against other eco-warriors on campus</p>
+        </div>
+    </div>
+
+    <div class="leaderboard-tabs">
+        <div class="container">
+            <div class="tab-container">
+                <button class="tab-btn active" data-tab="individual">Individual</button>
+                <button class="tab-btn" data-tab="residence">Residence Halls</button>
+                <button class="tab-btn" data-tab="university">Universities</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container leaderboard-content">
+        <div class="filter-section">
+            <div class="filter-group">
+                <select class="filter-select" id="periodFilter">
+                    <option value="week">This Week</option>
+                    <option value="month">This Month</option>
+                    <option value="semester">This Semester</option>
+                    <option value="all">All Time</option>
+                </select>
+                <select class="filter-select" id="universityFilter">
+                    <option value="all">All Universities</option>
+                    <option value="uct">University of Cape Town</option>
+                    <option value="wits">University of the Witwatersrand</option>
+                    <option value="uj">University of Johannesburg</option>
+                    <option value="sun">Stellenbosch University</option>
+                    <option value="up">University of Pretoria</option>
+                </select>
+            </div>
+            <input type="text" class="search-box" placeholder="Search students..." id="searchBox">
+        </div>
+
+        <div id="individualTab" class="tab-content active">
+            <div class="top-three">
+                <div class="podium-card second">
+                    <div class="podium-rank second">2</div>
+                    <div class="podium-avatar">SA</div>
+                    <div class="podium-name">Sarah Adams</div>
+                    <div class="podium-university">University of Cape Town</div>
+                    <div class="podium-points">2,847</div>
+                    <div class="podium-label">points</div>
+                </div>
+
+                <div class="podium-card first">
+                    <div class="podium-rank first">1</div>
+                    <div class="podium-avatar">MJ</div>
+                    <div class="podium-name">Michael Johnson</div>
+                    <div class="podium-university">University of the Witwatersrand</div>
+                    <div class="podium-points">3,156</div>
+                    <div class="podium-label">points</div>
+                </div>
+
+                <div class="podium-card third">
+                    <div class="podium-rank third">3</div>
+                    <div class="podium-avatar">LM</div>
+                    <div class="podium-name">Lisa Martinez</div>
+                    <div class="podium-university">Stellenbosch University</div>
+                    <div class="podium-points">2,634</div>
+                    <div class="podium-label">points</div>
+                </div>
+            </div>
+
+            <div class="leaderboard-list">
+                <div class="leaderboard-item">
+                    <div class="item-rank">4</div>
+                    <div class="item-avatar">DW</div>
+                    <div class="item-info">
+                        <div class="item-name">David Wilson</div>
+                        <div class="item-university">University of Johannesburg</div>
+                    </div>
+                    <div class="item-stats">
+                        <div class="stat-item">
+                            <div class="stat-value">2,489</div>
+                            <div class="stat-label">Points</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">187</div>
+                            <div class="stat-label">Items</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">23.1 kg</div>
+                            <div class="stat-label">CO₂ Saved</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="leaderboard-item">
+                    <div class="item-rank">5</div>
+                    <div class="item-avatar">EB</div>
+                    <div class="item-info">
+                        <div class="item-name">Emma Brown</div>
+                        <div class="item-university">University of Pretoria</div>
+                    </div>
+                    <div class="item-stats">
+                        <div class="stat-item">
+                            <div class="stat-value">2,367</div>
+                            <div class="stat-label">Points</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">165</div>
+                            <div class="stat-label">Items</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">19.8 kg</div>
+                            <div class="stat-label">CO₂ Saved</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="leaderboard-item current-user">
+                    <div class="item-rank">12</div>
+                    <div class="item-avatar">YO</div>
+                    <div class="item-info">
+                        <div class="item-name">You</div>
+                        <div class="item-university">Your University</div>
+                    </div>
+                    <div class="item-stats">
+                        <div class="stat-item">
+                            <div class="stat-value">1,247</div>
+                            <div class="stat-label">Points</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">89</div>
+                            <div class="stat-label">Items</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">12.4 kg</div>
+                            <div class="stat-label">CO₂ Saved</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="leaderboard-item">
+                    <div class="item-rank">13</div>
+                    <div class="item-avatar">JD</div>
+                    <div class="item-info">
+                        <div class="item-name">James Davis</div>
+                        <div class="item-university">University of KwaZulu-Natal</div>
+                    </div>
+                    <div class="item-stats">
+                        <div class="stat-item">
+                            <div class="stat-value">1,198</div>
+                            <div class="stat-label">Points</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">84</div>
+                            <div class="stat-label">Items</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">11.7 kg</div>
+                            <div class="stat-label">CO₂ Saved</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="residenceTab" class="tab-content" style="display: none;">
+            <div class="top-three">
+                <div class="podium-card second">
+                    <div class="podium-rank second">2</div>
+                    <div class="podium-avatar">GH</div>
+                    <div class="podium-name">Green Hall</div>
+                    <div class="podium-university">University of Cape Town</div>
+                    <div class="podium-points">15,847</div>
+                    <div class="podium-label">points</div>
+                </div>
+
+                <div class="podium-card first">
+                    <div class="podium-rank first">1</div>
+                    <div class="podium-avatar">EH</div>
+                    <div class="podium-name">Eco House</div>
+                    <div class="podium-university">University of the Witwatersrand</div>
+                    <div class="podium-points">18,256</div>
+                    <div class="podium-label">points</div>
+                </div>
+
+                <div class="podium-card third">
+                    <div class="podium-rank third">3</div>
+                    <div class="podium-avatar">SH</div>
+                    <div class="podium-name">Sustainability Hall</div>
+                    <div class="podium-university">Stellenbosch University</div>
+                    <div class="podium-points">14,634</div>
+                    <div class="podium-label">points</div>
+                </div>
+            </div>
+
+            <div class="leaderboard-list">
+                <div class="leaderboard-item">
+                    <div class="item-rank">4</div>
+                    <div class="item-avatar">NH</div>
+                    <div class="item-info">
+                        <div class="item-name">Nature House</div>
+                        <div class="item-university">University of Johannesburg</div>
+                    </div>
+                    <div class="item-stats">
+                        <div class="stat-item">
+                            <div class="stat-value">12,489</div>
+                            <div class="stat-label">Points</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">87</div>
+                            <div class="stat-label">Members</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">143.5</div>
+                            <div class="stat-label">Avg Points</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="universityTab" class="tab-content" style="display: none;">
+            <div class="top-three">
+                <div class="podium-card second">
+                    <div class="podium-rank second">2</div>
+                    <div class="podium-avatar">UCT</div>
+                    <div class="podium-name">University of Cape Town</div>
+                    <div class="podium-university">Western Cape</div>
+                    <div class="podium-points">89,847</div>
+                    <div class="podium-label">points</div>
+                </div>
+
+                <div class="podium-card first">
+                    <div class="podium-rank first">1</div>
+                    <div class="podium-avatar">WITS</div>
+                    <div class="podium-name">University of the Witwatersrand</div>
+                    <div class="podium-university">Gauteng</div>
+                    <div class="podium-points">95,256</div>
+                    <div class="podium-label">points</div>
+                </div>
+
+                <div class="podium-card third">
+                    <div class="podium-rank third">3</div>
+                    <div class="podium-avatar">SUN</div>
+                    <div class="podium-name">Stellenbosch University</div>
+                    <div class="podium-university">Western Cape</div>
+                    <div class="podium-points">84,634</div>
+                    <div class="podium-label">points</div>
+                </div>
+            </div>
+
+            <div class="leaderboard-list">
+                <div class="leaderboard-item">
+                    <div class="item-rank">4</div>
+                    <div class="item-avatar">UJ</div>
+                    <div class="item-info">
+                        <div class="item-name">University of Johannesburg</div>
+                        <div class="item-university">Gauteng</div>
+                    </div>
+                    <div class="item-stats">
+                        <div class="stat-item">
+                            <div class="stat-value">78,489</div>
+                            <div class="stat-label">Points</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">2,187</div>
+                            <div class="stat-label">Students</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">35.9</div>
+                            <div class="stat-label">Avg Points</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="index.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            setupTabSwitching();
+            setupFilters();
+            loadLeaderboardData();
+        });
+
+        function setupTabSwitching() {
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            tabBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    // Remove active class from all tabs
+                    tabBtns.forEach(b => b.classList.remove('active'));
+                    tabContents.forEach(content => {
+                        content.classList.remove('active');
+                        content.style.display = 'none';
+                    });
+
+                    // Add active class to clicked tab
+                    btn.classList.add('active');
+                    const tabId = btn.dataset.tab + 'Tab';
+                    const activeContent = document.getElementById(tabId);
+                    if (activeContent) {
+                        activeContent.classList.add('active');
+                        activeContent.style.display = 'block';
+                    }
+                });
+            });
+        }
+
+        function setupFilters() {
+            const periodFilter = document.getElementById('periodFilter');
+            const universityFilter = document.getElementById('universityFilter');
+            const searchBox = document.getElementById('searchBox');
+
+            periodFilter.addEventListener('change', () => {
+                loadLeaderboardData();
+            });
+
+            universityFilter.addEventListener('change', () => {
+                loadLeaderboardData();
+            });
+
+            searchBox.addEventListener('input', debounce(() => {
+                filterLeaderboard();
+            }, 300));
+        }
+
+        async function loadLeaderboardData() {
+            try {
+                const period = document.getElementById('periodFilter').value;
+                const university = document.getElementById('universityFilter').value;
+                
+                const response = await fetch(`/api/leaderboard.php?period=${period}&university=${university}`, {
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    updateLeaderboard(data);
+                }
+            } catch (error) {
+                console.error('Failed to load leaderboard data:', error);
+            }
+        }
+
+        function updateLeaderboard(data) {
+            // Update individual leaderboard
+            if (data.individual) {
+                updateIndividualLeaderboard(data.individual);
+            }
+            
+            // Update residence leaderboard
+            if (data.residence) {
+                updateResidenceLeaderboard(data.residence);
+            }
+            
+            // Update university leaderboard
+            if (data.university) {
+                updateUniversityLeaderboard(data.university);
+            }
+        }
+
+        function updateIndividualLeaderboard(data) {
+            // This would update the individual leaderboard with real data
+            console.log('Updating individual leaderboard:', data);
+        }
+
+        function updateResidenceLeaderboard(data) {
+            // This would update the residence leaderboard with real data
+            console.log('Updating residence leaderboard:', data);
+        }
+
+        function updateUniversityLeaderboard(data) {
+            // This would update the university leaderboard with real data
+            console.log('Updating university leaderboard:', data);
+        }
+
+        function filterLeaderboard() {
+            const searchTerm = document.getElementById('searchBox').value.toLowerCase();
+            const activeTab = document.querySelector('.tab-content.active');
+            const items = activeTab.querySelectorAll('.leaderboard-item');
+
+            items.forEach(item => {
+                const name = item.querySelector('.item-name').textContent.toLowerCase();
+                const university = item.querySelector('.item-university').textContent.toLowerCase();
+                
+                if (name.includes(searchTerm) || university.includes(searchTerm)) {
+                    item.style.display = 'flex';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+    </script>
+</body>
+</html>

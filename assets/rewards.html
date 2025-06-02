@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Adbeam - Rewards</title>
+    <link rel="stylesheet" href="index.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <style>
+      .rewards-header {
+        background: linear-gradient(
+          135deg,
+          var(--primary-color),
+          var(--primary-dark)
+        );
+        color: white;
+        padding: 3rem 0;
+        text-align: center;
+      }
+
+      .points-display {
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 12px;
+        padding: 1rem 2rem;
+        display: inline-block;
+        margin-top: 1rem;
+      }
+
+      .points-value {
+        font-size: 2rem;
+        font-weight: 700;
+      }
+
+      .filter-section {
+        background: white;
+        padding: 1.5rem 0;
+        border-bottom: 1px solid var(--light-gray);
+        position: sticky;
+        top: 80px;
+        z-index: 100;
+      }
+
+      .filter-controls {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+      }
+
+      .filter-group {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+      }
+
+      .filter-select {
+        padding: 0.5rem 1rem;
+        border: 1px solid var(--light-gray);
+        border-radius: 8px;
+        background: white;
+      }
+
+      .search-box {
+        padding: 0.5rem 1rem;
+        border: 1px solid var(--light-gray);
+        border-radius: 8px;
+        width: 250px;
+      }
+
+      .rewards-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 2rem;
+        padding: 2rem 0;
+      }
+
+      .reward-card {
+        background: white;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--light-gray);
+        transition: var(--transition);
+        position: relative;
+      }
+
+      .reward-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-md);
+      }
+
+      .reward-image {
+        height: 200px;
+        background: var(--lightest-gray);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3rem;
+        color: var(--primary-color);
+      }
+
+      .reward-content {
+        padding: 1.5rem;
+      }
+
+      .reward-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: var(--text-color);
+      }
+
+      .reward-description {
+        color: var(--light-text);
+        margin-bottom: 1rem;
+        font-size: 0.95rem;
+      }
+
+      .reward-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 1rem;
+        border-top: 1px solid var(--light-gray);
+      }
+
+      .reward-points {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--primary-color);
+      }
+
+      .reward-inventory {
+        font-size: 0.85rem;
+        color: var(--light-text);
+      }
+
+      .redeem-btn {
+        padding: 0.5rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: var(--transition);
+      }
+
+      .redeem-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
+      .loading-spinner {
+        width: 16px;
+        height: 16px;
+        border: 2px solid #ffffff;
+        border-top: 2px solid transparent;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-right: 0.5rem;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      .toast-container {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 1050;
+      }
+
+      .toast {
+        background: white;
+        border-radius: 8px;
+        box-shadow: var(--shadow-md);
+        border: 1px solid var(--light-gray);
+        min-width: 300px;
+      }
+
+      .redemption-history {
+        background: white;
+        border-radius: 16px;
+        padding: 2rem;
+        margin-top: 2rem;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--light-gray);
+      }
+
+      .history-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 0;
+        border-bottom: 1px solid var(--light-gray);
+      }
+
+      .history-item:last-child {
+        border-bottom: none;
+      }
+
+      .history-info h4 {
+        font-size: 1rem;
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+      }
+
+      .history-info p {
+        font-size: 0.875rem;
+        color: var(--light-text);
+        margin: 0;
+      }
+
+      .history-code {
+        font-family: monospace;
+        background: var(--lightest-gray);
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.875rem;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="container header-content">
+        <a href="index.html" class="logo">
+          <div class="logo-icon">A</div>
+          Adbeam
+        </a>
+        <nav>
+          <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="dashboard.html">Recycling Tracker</a></li>
+            <li><a href="recycling_guide.html">Recycling Guide</a></li>
+            <li><a href="qr-scanner.html">QR Scanner</a></li>
+            <li><a href="rewards.html" class="active">Rewards</a></li>
+            <li><a href="about.html">About</a></li>
+          </ul>
+        </nav>
+        <div class="auth-buttons"></div>
+      </div>
+    </header>
+
+    <div class="rewards-header">
+      <div class="container">
+        <h1><i class="fas fa-gift"></i> Rewards Store</h1>
+        <p>Redeem your recycling points for amazing rewards</p>
+        <div class="points-display">
+          <div class="points-value" id="userPoints">1,247</div>
+          <div>Available Points</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="filter-section">
+      <div class="container">
+        <div class="filter-controls">
+          <div class="filter-group">
+            <select class="filter-select" id="categoryFilter">
+              <option value="all">All Categories</option>
+              <option value="dining">Dining</option>
+              <option value="store">Campus Store</option>
+              <option value="merchandise">Merchandise</option>
+              <option value="experiences">Experiences</option>
+            </select>
+            <select class="filter-select" id="pointsFilter">
+              <option value="all">All Points</option>
+              <option value="0-100">0-100 points</option>
+              <option value="101-500">101-500 points</option>
+              <option value="501-1000">501-1000 points</option>
+              <option value="1000+">1000+ points</option>
+            </select>
+          </div>
+          <input
+            type="text"
+            class="search-box"
+            placeholder="Search rewards..."
+            id="searchBox"
+          />
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+      <div class="rewards-grid" id="rewardsGrid">
+        <!-- Rewards will be loaded here -->
+      </div>
+
+      <div class="redemption-history">
+        <h3>Redemption History</h3>
+        <div id="redemptionHistory">
+          <!-- History will be loaded here -->
+        </div>
+      </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <footer>
+      <div class="container">
+        <div class="footer-content">
+          <div class="footer-column footer-about">
+            <a href="index.html" class="logo">
+              <div class="logo-icon">A</div>
+              Adbeam
+            </a>
+            <p>
+              Rewarding sustainable choices on college campuses across the
+              nation.
+            </p>
+          </div>
+          <div class="footer-column">
+            <h3>Product</h3>
+            <ul class="footer-links">
+              <li><a href="dashboard.html">Recycling Tracker</a></li>
+              <li><a href="recycling_guide.html">Recycling Guide</a></li>
+              <li><a href="rewards.html">Rewards</a></li>
+            </ul>
+          </div>
+          <div class="footer-column">
+            <h3>Company</h3>
+            <ul class="footer-links">
+              <li><a href="about.html">About us</a></li>
+              <li><a href="contact.html">Contact</a></li>
+              <li><a href="#">Careers</a></li>
+            </ul>
+          </div>
+          <div class="footer-column">
+            <h3>Resources</h3>
+            <ul class="footer-links">
+              <li><a href="#">Support</a></li>
+              <li><a href="#">Privacy</a></li>
+              <li><a href="#">Terms</a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <p class="copyright">© 2025 Adbeam, Inc. All rights reserved.</p>
+          <div class="social-links">
+            <a href="#" class="social-link">
+              <i class="fab fa-facebook-f"></i>
+            </a>
+            <a href="#" class="social-link">
+              <i class="fab fa-twitter"></i>
+            </a>
+            <a href="#" class="social-link">
+              <i class="fab fa-linkedin-in"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="index.js"></script>
+    <script>
+      // Rewards system functionality
+      class RewardsSystem {
+        constructor() {
+          this.userPoints = 1247; // This would come from API
+          this.rewards = [];
+          this.redemptionHistory = [];
+
+          this.initializeElements();
+          this.loadUserData();
+          this.loadRewards();
+          this.loadRedemptionHistory();
+          this.setupEventListeners();
+        }
+
+        initializeElements() {
+          this.pointsDisplay = document.getElementById("userPoints");
+          this.rewardsGrid = document.getElementById("rewardsGrid");
+          this.historyContainer = document.getElementById("redemptionHistory");
+          this.categoryFilter = document.getElementById("categoryFilter");
+          this.pointsFilter = document.getElementById("pointsFilter");
+          this.searchBox = document.getElementById("searchBox");
+          this.toastContainer = document.getElementById("toastContainer");
+        }
+
+        async loadUserData() {
+          try {
+            const response = await fetch("/api/auth/me.php", {
+              credentials: "include",
+            });
+
+            if (response.ok) {
+              const data = await response.json();
+              this.userPoints = data.points || 1247;
+              this.updatePointsDisplay();
+            }
+          } catch (error) {
+            console.error("Failed to load user data:", error);
+          }
+        }
+
+        async loadRewards() {
+          try {
+            // Mock data for demonstration
+            this.rewards = [
+              {
+                id: 1,
+                name: "Free Coffee",
+                description: "Get a free coffee from the campus café",
+                points_cost: 200,
+                category: "dining",
+                inventory: 50,
+                icon: "fas fa-coffee",
+              },
+              {
+                id: 2,
+                name: "$5 Dining Credit",
+                description: "Add $5 to your dining account",
+                points_cost: 300,
+                category: "dining",
+                inventory: 100,
+                icon: "fas fa-utensils",
+              },
+              {
+                id: 3,
+                name: "10% Off Textbooks",
+                description: "Get 10% discount on textbook purchases",
+                points_cost: 500,
+                category: "store",
+                inventory: 25,
+                icon: "fas fa-book",
+              },
+              {
+                id: 4,
+                name: "Adbeam T-Shirt",
+                description: "Official Adbeam recycling champion t-shirt",
+                points_cost: 750,
+                category: "merchandise",
+                inventory: 15,
+                icon: "fas fa-tshirt",
+              },
+              {
+                id: 5,
+                name: "Campus Tour Guide",
+                description:
+                  "Free guided tour of campus sustainability initiatives",
+                points_cost: 400,
+                category: "experiences",
+                inventory: 10,
+                icon: "fas fa-walking",
+              },
+              {
+                id: 6,
+                name: "Meal Plan Bonus",
+                description: "Add $15 bonus to your meal plan",
+                points_cost: 1000,
+                category: "dining",
+                inventory: 20,
+                icon: "fas fa-hamburger",
+              },
+            ];
+
+            this.renderRewards();
+          } catch (error) {
+            console.error("Failed to load rewards:", error);
+            this.showToast("Failed to load rewards", "error");
+          }
+        }
+
+        async loadRedemptionHistory() {
+          try {
+            // Mock data for demonstration
+            this.redemptionHistory = [
+              {
+                id: 1,
+                reward_name: "Free Coffee",
+                points_cost: 200,
+                redeemed_at: "2025-01-25T10:30:00Z",
+                redemption_code: "COFFEE123",
+              },
+              {
+                id: 2,
+                reward_name: "$5 Dining Credit",
+                points_cost: 300,
+                redeemed_at: "2025-01-20T14:15:00Z",
+                redemption_code: "DINING456",
+              },
+            ];
+
+            this.renderRedemptionHistory();
+          } catch (error) {
+            console.error("Failed to load redemption history:", error);
+          }
+        }
+
+        renderRewards() {
+          const filteredRewards = this.getFilteredRewards();
+
+          this.rewardsGrid.innerHTML = filteredRewards
+            .map(
+              (reward) => `
+          <div class="reward-card" data-category="${
+            reward.category
+          }" data-points="${reward.points_cost}">
+            <div class="reward-image">
+              <i class="${reward.icon}"></i>
+            </div>
+            <div class="reward-content">
+              <h3 class="reward-title">${reward.name}</h3>
+              <p class="reward-description">${reward.description}</p>
+              <div class="reward-footer">
+                <div>
+                  <div class="reward-points">${reward.points_cost} points</div>
+                  <div class="reward-inventory">${
+                    reward.inventory
+                  } remaining</div>
+                </div>
+                <button 
+                  class="btn btn-primary redeem-btn" 
+                  data-reward-id="${reward.id}"
+                  ${
+                    this.userPoints < reward.points_cost ||
+                    reward.inventory === 0
+                      ? "disabled"
+                      : ""
+                  }
+                >
+                  ${
+                    this.userPoints < reward.points_cost
+                      ? "Not enough points"
+                      : reward.inventory === 0
+                      ? "Out of stock"
+                      : "Redeem"
+                  }
+                </button>
+              </div>
+            </div>
+          </div>
+        `
+            )
+            .join("");
+
+          // Add event listeners to redeem buttons
+          this.rewardsGrid.querySelectorAll(".redeem-btn").forEach((btn) => {
+            btn.addEventListener("click", (e) => this.handleRedemption(e));
+          });
+        }
+
+        renderRedemptionHistory() {
+          if (this.redemptionHistory.length === 0) {
+            this.historyContainer.innerHTML =
+              '<p class="text-muted">No redemptions yet. Start earning points to redeem rewards!</p>';
+            return;
+          }
+
+          this.historyContainer.innerHTML = this.redemptionHistory
+            .map(
+              (item) => `
+          <div class="history-item">
+            <div class="history-info">
+              <h4>${item.reward_name}</h4>
+              <p>Redeemed on ${new Date(
+                item.redeemed_at
+              ).toLocaleDateString()}</p>
+            </div>
+            <div class="history-code">${item.redemption_code}</div>
+          </div>
+        `
+            )
+            .join("");
+        }
+
+        getFilteredRewards() {
+          let filtered = [...this.rewards];
+
+          // Category filter
+          const category = this.categoryFilter.value;
+          if (category !== "all") {
+            filtered = filtered.filter(
+              (reward) => reward.category === category
+            );
+          }
+
+          // Points filter
+          const pointsRange = this.pointsFilter.value;
+          if (pointsRange !== "all") {
+            const [min, max] = pointsRange
+              .split("-")
+              .map((p) => p.replace("+", ""));
+            filtered = filtered.filter((reward) => {
+              if (pointsRange === "1000+") {
+                return reward.points_cost >= 1000;
+              }
+              return (
+                reward.points_cost >= parseInt(min) &&
+                reward.points_cost <= parseInt(max)
+              );
+            });
+          }
+
+          // Search filter
+          const searchTerm = this.searchBox.value.toLowerCase();
+          if (searchTerm) {
+            filtered = filtered.filter(
+              (reward) =>
+                reward.name.toLowerCase().includes(searchTerm) ||
+                reward.description.toLowerCase().includes(searchTerm)
+            );
+          }
+
+          return filtered;
+        }
+
+        async handleRedemption(e) {
+          const btn = e.target;
+          const rewardId = parseInt(btn.dataset.rewardId);
+          const reward = this.rewards.find((r) => r.id === rewardId);
+
+          if (!reward) return;
+
+          // Confirm redemption
+          if (
+            !confirm(
+              `Redeem "${reward.name}" for ${reward.points_cost} points?`
+            )
+          ) {
+            return;
+          }
+
+          // Set loading state
+          btn.disabled = true;
+          btn.innerHTML = '<div class="loading-spinner"></div>Redeeming...';
+
+          try {
+            // Simulate API call
+            await new Promise((resolve) => setTimeout(resolve, 1500));
+
+            // Mock successful redemption
+            const redemptionCode = this.generateRedemptionCode();
+
+            // Update user points
+            this.userPoints -= reward.points_cost;
+            this.updatePointsDisplay();
+
+            // Update reward inventory
+            reward.inventory -= 1;
+
+            // Add to redemption history
+            this.redemptionHistory.unshift({
+              id: Date.now(),
+              reward_name: reward.name,
+              points_cost: reward.points_cost,
+              redeemed_at: new Date().toISOString(),
+              redemption_code: redemptionCode,
+            });
+
+            // Show success message
+            this.showToast(
+              `Successfully redeemed "${reward.name}"! Your code: ${redemptionCode}`,
+              "success"
+            );
+
+            // Re-render components
+            this.renderRewards();
+            this.renderRedemptionHistory();
+          } catch (error) {
+            console.error("Redemption failed:", error);
+            this.showToast("Redemption failed. Please try again.", "error");
+          } finally {
+            // Reset button state
+            btn.disabled = false;
+            btn.innerHTML = "Redeem";
+          }
+        }
+
+        generateRedemptionCode() {
+          const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+          let result = "";
+          for (let i = 0; i < 8; i++) {
+            result += chars.charAt(Math.floor(Math.random() * chars.length));
+          }
+          return result;
+        }
+
+        updatePointsDisplay() {
+          this.pointsDisplay.textContent = this.userPoints.toLocaleString();
+        }
+
+        showToast(message, type = "info") {
+          const toastId = "toast-" + Date.now();
+          const bgColor =
+            type === "success"
+              ? "bg-success"
+              : type === "error"
+              ? "bg-danger"
+              : "bg-info";
+
+          const toastHTML = `
+          <div class="toast show" id="${toastId}" role="alert">
+            <div class="toast-header ${bgColor} text-white">
+              <strong class="me-auto">
+                <i class="fas ${
+                  type === "success"
+                    ? "fa-check-circle"
+                    : type === "error"
+                    ? "fa-exclamation-circle"
+                    : "fa-info-circle"
+                }"></i>
+                ${
+                  type === "success"
+                    ? "Success"
+                    : type === "error"
+                    ? "Error"
+                    : "Info"
+                }
+              </strong>
+              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+            </div>
+            <div class="toast-body">
+              ${message}
+            </div>
+          </div>
+        `;
+
+          this.toastContainer.insertAdjacentHTML("beforeend", toastHTML);
+
+          // Auto remove after 5 seconds
+          setTimeout(() => {
+            const toast = document.getElementById(toastId);
+            if (toast) {
+              toast.remove();
+            }
+          }, 5000);
+        }
+
+        setupEventListeners() {
+          // Filter event listeners
+          this.categoryFilter.addEventListener("change", () =>
+            this.renderRewards()
+          );
+          this.pointsFilter.addEventListener("change", () =>
+            this.renderRewards()
+          );
+
+          // Search with debounce
+          let searchTimeout;
+          this.searchBox.addEventListener("input", () => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => this.renderRewards(), 300);
+          });
+        }
+      }
+
+      // Initialize rewards system when page loads
+      document.addEventListener("DOMContentLoaded", () => {
+        new RewardsSystem();
+      });
+    </script>
+  </body>
+</html>

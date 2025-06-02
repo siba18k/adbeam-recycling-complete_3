@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>QR Scanner - Adbeam</title>
+    <link rel="stylesheet" href="index.css" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+    <style>
+      :root {
+        --primary-green: #2ecc71;
+        --dark-green: #27ae60;
+        --light-green: #e8f8f1;
+        --success-green: #00d4aa;
+        --warning-orange: #ff9500;
+        --error-red: #ff3b30;
+      }
+
+      body {
+        background: linear-gradient(
+          135deg,
+          var(--light-green) 0%,
+          #ffffff 100%
+        );
+        min-height: 100vh;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          sans-serif;
+      }
+
+      .scanner-container {
+        max-width: 500px;
+        margin: 2rem auto;
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+      }
+
+      .scanner-header {
+        background: var(--primary-green);
+        color: white;
+        padding: 1.5rem;
+        text-align: center;
+      }
+
+      .scanner-header h1 {
+        margin: 0;
+        font-size: 1.5rem;
+        font-weight: 600;
+      }
+
+      .points-display {
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 10px;
+        padding: 0.5rem 1rem;
+        margin-top: 1rem;
+        display: inline-block;
+      }
+
+      .camera-section {
+        position: relative;
+        background: #000;
+        aspect-ratio: 1;
+        overflow: hidden;
+      }
+
+      #scanner-video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .scanner-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        pointer-events: none;
+      }
+
+      .scan-frame {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 250px;
+        height: 250px;
+        border: 3px solid var(--primary-green);
+        border-radius: 20px;
+        box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
+      }
+
+      .scan-frame::before,
+      .scan-frame::after {
+        content: "";
+        position: absolute;
+        width: 30px;
+        height: 30px;
+        border: 4px solid var(--success-green);
+      }
+
+      .scan-frame::before {
+        top: -4px;
+        left: -4px;
+        border-right: none;
+        border-bottom: none;
+      }
+
+      .scan-frame::after {
+        bottom: -4px;
+        right: -4px;
+        border-left: none;
+        border-top: none;
+      }
+
+      .scanning-line {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          var(--success-green),
+          transparent
+        );
+        animation: scan 2s linear infinite;
+      }
+
+      @keyframes scan {
+        0% {
+          transform: translateY(0);
+        }
+        100% {
+          transform: translateY(250px);
+        }
+      }
+
+      .material-selection {
+        padding: 1.5rem;
+      }
+
+      .material-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+      }
+
+      .material-btn {
+        background: var(--light-green);
+        border: 2px solid transparent;
+        border-radius: 15px;
+        padding: 1rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        color: var(--dark-green);
+        font-weight: 600;
+      }
+
+      .material-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      }
+
+      .material-btn.active {
+        background: var(--primary-green);
+        color: white;
+        border-color: var(--dark-green);
+      }
+
+      .material-btn i {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+        display: block;
+      }
+
+      .scanner-controls {
+        padding: 1.5rem;
+        border-top: 1px solid #eee;
+      }
+
+      .control-btn {
+        width: 100%;
+        padding: 1rem;
+        border: none;
+        border-radius: 15px;
+        font-weight: 600;
+        font-size: 1.1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-bottom: 1rem;
+      }
+
+      .start-btn {
+        background: var(--primary-green);
+        color: white;
+      }
+
+      .start-btn:hover {
+        background: var(--dark-green);
+        transform: translateY(-2px);
+      }
+
+      .start-btn:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .stop-btn {
+        background: var(--error-red);
+        color: white;
+      }
+
+      .result-section {
+        padding: 1.5rem;
+        border-top: 1px solid #eee;
+        display: none;
+      }
+
+      .result-success {
+        background: linear-gradient(
+          135deg,
+          var(--success-green),
+          var(--primary-green)
+        );
+        color: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        text-align: center;
+        margin-bottom: 1rem;
+      }
+
+      .result-error {
+        background: linear-gradient(135deg, var(--error-red), #ff6b6b);
+        color: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        text-align: center;
+        margin-bottom: 1rem;
+      }
+
+      .points-earned {
+        font-size: 2rem;
+        font-weight: 700;
+        margin: 0.5rem 0;
+      }
+
+      .stats-update {
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 10px;
+        padding: 1rem;
+        margin-top: 1rem;
+      }
+
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        text-align: center;
+      }
+
+      .stat-item {
+        background: white;
+        border-radius: 10px;
+        padding: 1rem;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+
+      .stat-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--primary-green);
+        margin-bottom: 0.25rem;
+      }
+
+      .stat-label {
+        font-size: 0.8rem;
+        color: #666;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .scan-again-btn {
+        background: var(--primary-green);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .scan-again-btn:hover {
+        background: var(--dark-green);
+        transform: translateY(-1px);
+      }
+
+      .loading-spinner {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        border-top-color: white;
+        animation: spin 1s ease-in-out infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .camera-error {
+        background: var(--error-red);
+        color: white;
+        padding: 2rem;
+        text-align: center;
+        border-radius: 15px;
+        margin: 1rem;
+      }
+
+      .manual-entry {
+        background: #f8f9fa;
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin-top: 1rem;
+      }
+
+      .manual-entry input {
+        width: 100%;
+        padding: 0.75rem;
+        border: 2px solid #ddd;
+        border-radius: 10px;
+        margin-bottom: 1rem;
+        font-size: 1rem;
+      }
+
+      .manual-entry input:focus {
+        outline: none;
+        border-color: var(--primary-green);
+      }
+
+      .pulse-animation {
+        animation: pulse 0.5s ease-in-out;
+      }
+
+      @keyframes pulse {
+        0% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.05);
+        }
+        100% {
+          transform: scale(1);
+        }
+      }
+
+      @media (max-width: 768px) {
+        .scanner-container {
+          margin: 1rem;
+          max-width: none;
+        }
+
+        .material-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="container header-content">
+        <a href="index.html" class="logo">
+          <div class="logo-icon">A</div>
+          Adbeam
+        </a>
+        <nav>
+          <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="dashboard.html">Recycling Tracker</a></li>
+            <li><a href="recycling_guide.html">Recycling Guide</a></li>
+            <li><a href="rewards.html">Rewards</a></li>
+            <li><a href="about.html">About</a></li>
+          </ul>
+        </nav>
+        <div class="auth-buttons">
+        </div>
+      </div>
+    </header>
+
+    <div class="container">
+      <div class="scanner-container">
+        <!-- Scanner Header -->
+        <div class="scanner-header">
+          <h1><i class="fas fa-qrcode me-2"></i>Scan to Recycle</h1>
+          <div class="points-display">
+            <i class="fas fa-coins me-1"></i>
+            <span id="current-points">0</span> Points
+          </div>
+        </div>
+
+        <!-- Camera Section -->
+        <div class="camera-section" id="camera-section">
+          <video id="scanner-video" autoplay muted playsinline></video>
+          <canvas id="scanner-canvas" style="display: none"></canvas>
+
+          <div class="scanner-overlay">
+            <div class="scan-frame">
+              <div
+                class="scanning-line"
+                id="scanning-line"
+                style="display: none"
+              ></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Material Selection -->
+        <div class="material-selection">
+          <h3 class="mb-3">Select Material Type</h3>
+          <div class="material-grid">
+            <div class="material-btn" data-material="plastic">
+              <i class="fas fa-wine-bottle"></i>
+              <div>Plastic</div>
+              <small>+5 pts</small>
+            </div>
+            <div class="material-btn" data-material="glass">
+              <i class="fas fa-wine-glass"></i>
+              <div>Glass</div>
+              <small>+10 pts</small>
+            </div>
+            <div class="material-btn" data-material="aluminum">
+              <i class="fas fa-beer"></i>
+              <div>Aluminum</div>
+              <small>+7 pts</small>
+            </div>
+          </div>
+
+          <!-- Manual Entry Option -->
+          <div class="manual-entry" id="manual-entry" style="display: none">
+            <h4>Manual Entry</h4>
+            <input
+              type="text"
+              id="manual-barcode"
+              placeholder="Enter barcode manually"
+            />
+            <button
+              class="control-btn start-btn"
+              onclick="processManualEntry()"
+            >
+              Submit
+            </button>
+          </div>
+        </div>
+
+        <!-- Scanner Controls -->
+        <div class="scanner-controls">
+          <button
+            class="control-btn start-btn"
+            id="start-btn"
+            onclick="startScanner()"
+          >
+            <i class="fas fa-camera me-2"></i>Start Scanning
+          </button>
+          <button
+            class="control-btn stop-btn"
+            id="stop-btn"
+            onclick="stopScanner()"
+            style="display: none"
+          >
+            <i class="fas fa-stop me-2"></i>Stop Scanner
+          </button>
+          <button
+            class="control-btn"
+            onclick="toggleManualEntry()"
+            style="background: #6c757d; color: white"
+          >
+            <i class="fas fa-keyboard me-2"></i>Manual Entry
+          </button>
+        </div>
+
+        <!-- Result Section -->
+        <div class="result-section" id="result-section">
+          <!-- Results will be populated here -->
+        </div>
+      </div>
+
+      <!-- Stats Dashboard -->
+      <div class="stats-grid mt-4" id="stats-dashboard">
+        <div class="stat-item">
+          <div class="stat-value" id="total-items">0</div>
+          <div class="stat-label">Items Recycled</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" id="total-points">0</div>
+          <div class="stat-label">Total Points</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" id="co2-saved">0kg</div>
+          <div class="stat-label">CO₂ Saved</div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="index.js"></script>
+    <script>
+      // Adbeam Data Management System
+      class AdbeamDataManager {
+        constructor() {
+          this.storageKey = "adbeam_user_data";
+          this.initializeData();
+        }
+
+        initializeData() {
+          const existingData = this.getUserData();
+          if (!existingData) {
+            const defaultData = {
+              totalPoints: 0,
+              totalItems: 0,
+              co2Saved: 0,
+              lastUpdated: new Date().toISOString(),
+              recyclingHistory: [],
+              achievements: [],
+            };
+            this.saveUserData(defaultData);
+          }
+        }
+
+        getUserData() {
+          try {
+            const data = localStorage.getItem(this.storageKey);
+            return data ? JSON.parse(data) : null;
+          } catch (error) {
+            console.error("Error reading user data:", error);
+            return null;
+          }
+        }
+
+        saveUserData(data) {
+          try {
+            data.lastUpdated = new Date().toISOString();
+            localStorage.setItem(this.storageKey, JSON.stringify(data));
+            this.notifyDataUpdate(data);
+          } catch (error) {
+            console.error("Error saving user data:", error);
+          }
+        }
+
+        addRecyclingActivity(material, points, qrData) {
+          const userData = this.getUserData();
+          const co2Impact = this.calculateCO2Impact(material);
+
+          // Update totals
+          userData.totalPoints += points;
+          userData.totalItems += 1;
+          userData.co2Saved += co2Impact;
+
+          // Add to history
+          const activity = {
+            id: Date.now(),
+            material: material,
+            points: points,
+            co2Impact: co2Impact,
+            qrData: qrData,
+            timestamp: new Date().toISOString(),
+            location: "Campus Scanner",
+          };
+
+          userData.recyclingHistory.unshift(activity);
+
+          // Keep only last 50 activities
+          if (userData.recyclingHistory.length > 50) {
+            userData.recyclingHistory = userData.recyclingHistory.slice(0, 50);
+          }
+
+          this.saveUserData(userData);
+          return userData;
+        }
+
+        calculateCO2Impact(material) {
+          const co2Values = {
+            plastic: 0.5,
+            glass: 0.3,
+            aluminum: 0.8,
+            paper: 0.2,
+          };
+          return co2Values[material] || 0.3;
+        }
+
+        notifyDataUpdate(data) {
+          // Dispatch custom event for real-time updates
+          window.dispatchEvent(
+            new CustomEvent("adbeamDataUpdate", {
+              detail: data,
+            })
+          );
+
+          // Also update current page if it's the dashboard
+          if (window.location.pathname.includes("dashboard")) {
+            this.updateDashboardDisplay(data);
+          }
+        }
+
+        updateDashboardDisplay(data) {
+          // Update dashboard elements if they exist
+          const elements = {
+            totalPoints: data.totalPoints,
+            totalItems: data.totalItems,
+            co2Saved: `${data.co2Saved.toFixed(1)} kg`,
+          };
+
+          Object.entries(elements).forEach(([id, value]) => {
+            const element = document.getElementById(id);
+            if (element) {
+              element.textContent = value;
+              element.classList.add("pulse-animation");
+              setTimeout(
+                () => element.classList.remove("pulse-animation"),
+                500
+              );
+            }
+          });
+        }
+      }
+
+      // Initialize data manager
+      const dataManager = new AdbeamDataManager();
+
+      // Global variables for the camera functionality
+      const video = document.getElementById("scanner-video");
+      const canvas = document.getElementById("scanner-canvas");
+      const ctx = canvas.getContext("2d");
+      const resultSection = document.getElementById("result-section");
+
+      let scanning = false;
+      let selectedMaterial = null;
+      let stream = null;
+
+      // Material selection functionality
+      document.querySelectorAll(".material-btn").forEach((button) => {
+        button.addEventListener("click", function () {
+          // Remove active class from all buttons
+          document.querySelectorAll(".material-btn").forEach((btn) => {
+            btn.classList.remove("active");
+          });
+
+          // Add active class to clicked button
+          this.classList.add("active");
+          selectedMaterial = this.getAttribute("data-material");
+
+          // Enable start button
+          document.getElementById("start-btn").disabled = false;
+
+          console.log("Selected material:", selectedMaterial);
+        });
+      });
+
+      // Start scanner function
+      async function startScanner() {
+        if (!selectedMaterial) {
+          showError("Please select a material type first");
+          return;
+        }
+
+        try {
+          // Request camera access
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: "environment" },
+          });
+
+          video.srcObject = stream;
+          video.setAttribute("playsinline", true);
+          video.play();
+
+          scanning = true;
+
+          // Update UI
+          document.getElementById("start-btn").style.display = "none";
+          document.getElementById("stop-btn").style.display = "block";
+          document.getElementById("scanning-line").style.display = "block";
+
+          // Start the scanning loop
+          requestAnimationFrame(tick);
+        } catch (error) {
+          console.error("Error accessing camera:", error);
+          showCameraError();
+        }
+      }
+
+      // Stop scanner function
+      function stopScanner() {
+        scanning = false;
+
+        if (stream) {
+          stream.getTracks().forEach((track) => track.stop());
+          stream = null;
+        }
+
+        video.srcObject = null;
+
+        // Update UI
+        document.getElementById("start-btn").style.display = "block";
+        document.getElementById("stop-btn").style.display = "none";
+        document.getElementById("scanning-line").style.display = "none";
+      }
+
+      // Main scanning loop
+      function tick() {
+        if (!scanning) return;
+
+        if (video.readyState === video.HAVE_ENOUGH_DATA) {
+          canvas.height = video.videoHeight;
+          canvas.width = video.videoWidth;
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const code = jsQR(imageData.data, imageData.width, imageData.height);
+
+          if (code) {
+            console.log("QR Code detected:", code.data);
+            processScan(code.data);
+            return; // Stop scanning after successful detection
+          }
+        }
+
+        if (scanning) {
+          requestAnimationFrame(tick);
+        }
+      }
+
+      // Process the scanned QR code
+      function processScan(qrData) {
+        stopScanner();
+        showProcessing();
+
+        // Simulate processing time
+        setTimeout(() => {
+          const points = getPointsForMaterial(selectedMaterial);
+
+          // Update data using the data manager
+          const updatedData = dataManager.addRecyclingActivity(
+            selectedMaterial,
+            points,
+            qrData
+          );
+
+          const result = {
+            success: true,
+            points: points,
+            material: selectedMaterial,
+            qrData: qrData,
+            updatedData: updatedData,
+          };
+
+          showSuccess(result);
+          updateLocalStats(updatedData);
+        }, 2000);
+      }
+
+      // Get points based on material type
+      function getPointsForMaterial(material) {
+        const points = {
+          plastic: 5,
+          glass: 10,
+          aluminum: 7,
+        };
+        return points[material] || 5;
+      }
+
+      // Manual entry function
+      function processManualEntry() {
+        const barcode = document.getElementById("manual-barcode").value.trim();
+
+        if (!barcode) {
+          showError("Please enter a barcode");
+          return;
+        }
+
+        if (!selectedMaterial) {
+          showError("Please select a material type");
+          return;
+        }
+
+        processScan(barcode);
+        document.getElementById("manual-barcode").value = "";
+      }
+
+      // Toggle manual entry
+      function toggleManualEntry() {
+        const manualEntry = document.getElementById("manual-entry");
+        manualEntry.style.display =
+          manualEntry.style.display === "none" ? "block" : "none";
+      }
+
+      // Show processing state
+      function showProcessing() {
+        resultSection.style.display = "block";
+        resultSection.innerHTML = `
+                <div class="result-success">
+                    <div class="loading-spinner"></div>
+                    <h3>Processing Scan...</h3>
+                    <p>Verifying your recycling contribution</p>
+                </div>
+            `;
+      }
+
+      // Show success result
+      function showSuccess(result) {
+        const data = result.updatedData;
+        resultSection.innerHTML = `
+                <div class="result-success">
+                    <i class="fas fa-check-circle fa-3x mb-3"></i>
+                    <h3>Great Job!</h3>
+                    <div class="points-earned">+${result.points} Points</div>
+                    <p>You recycled ${result.material} and earned points!</p>
+                    <p><strong>QR Code:</strong> ${result.qrData}</p>
+                    
+                    <div class="stats-update">
+                        <div class="row text-center">
+                            <div class="col-4">
+                                <div class="stat-value">${
+                                  data.totalPoints
+                                }</div>
+                                <div class="stat-label">Total Points</div>
+                            </div>
+                            <div class="col-4">
+                                <div class="stat-value">${data.totalItems}</div>
+                                <div class="stat-label">Items Recycled</div>
+                            </div>
+                            <div class="col-4">
+                                <div class="stat-value">${data.co2Saved.toFixed(
+                                  1
+                                )}kg</div>
+                                <div class="stat-label">CO₂ Saved</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button class="scan-again-btn mt-3" onclick="resetForNewScan()">
+                        <i class="fas fa-qrcode me-2"></i>Scan Another Item
+                    </button>
+                </div>
+            `;
+      }
+
+      // Show error message
+      function showError(message) {
+        resultSection.style.display = "block";
+        resultSection.innerHTML = `
+                <div class="result-error">
+                    <i class="fas fa-exclamation-triangle fa-3x mb-3"></i>
+                    <h3>Error</h3>
+                    <p>${message}</p>
+                    <button class="scan-again-btn mt-3" onclick="resetForNewScan()">
+                        <i class="fas fa-redo me-2"></i>Try Again
+                    </button>
+                </div>
+            `;
+      }
+
+      // Show camera error
+      function showCameraError() {
+        document.getElementById("camera-section").innerHTML = `
+                <div class="camera-error">
+                    <i class="fas fa-camera-slash fa-3x mb-3"></i>
+                    <h3>Camera Access Required</h3>
+                    <p>Please allow camera access to scan QR codes</p>
+                    <button class="scan-again-btn mt-3" onclick="location.reload()">
+                        <i class="fas fa-redo me-2"></i>Retry
+                    </button>
+                </div>
+            `;
+      }
+
+      // Reset for new scan
+      function resetForNewScan() {
+        resultSection.style.display = "none";
+
+        // Reset material selection
+        document.querySelectorAll(".material-btn").forEach((btn) => {
+          btn.classList.remove("active");
+        });
+        selectedMaterial = null;
+        document.getElementById("start-btn").disabled = true;
+      }
+
+      // Update local stats display
+      function updateLocalStats(data) {
+        document.getElementById("current-points").textContent =
+          data.totalPoints;
+        document.getElementById("total-points").textContent = data.totalPoints;
+        document.getElementById("total-items").textContent = data.totalItems;
+        document.getElementById(
+          "co2-saved"
+        ).textContent = `${data.co2Saved.toFixed(1)}kg`;
+
+        // Add pulse animation
+        ["current-points", "total-points", "total-items", "co2-saved"].forEach(
+          (id) => {
+            const element = document.getElementById(id);
+            if (element) {
+              element.classList.add("pulse-animation");
+              setTimeout(
+                () => element.classList.remove("pulse-animation"),
+                500
+              );
+            }
+          }
+        );
+      }
+
+      // Initialize on page load
+      document.addEventListener("DOMContentLoaded", function () {
+        // Disable start button initially
+        document.getElementById("start-btn").disabled = true;
+
+        // Load current user data
+        const userData = dataManager.getUserData();
+        if (userData) {
+          updateLocalStats(userData);
+        }
+      });
+
+      // Handle page visibility changes
+      document.addEventListener("visibilitychange", () => {
+        if (document.hidden && scanning) {
+          stopScanner();
+        }
+      });
+
+      // Listen for data updates from other pages
+      window.addEventListener("adbeamDataUpdate", (event) => {
+        updateLocalStats(event.detail);
+      });
+    </script>
+  </body>
+</html>
