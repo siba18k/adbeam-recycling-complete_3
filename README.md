@@ -142,34 +142,6 @@ Before installing this project, ensure you have:
    - Monitor recycling trends
    - Generate reports on environmental impact
 
-## 📁 Project Structure
-
-\`\`\`
-adbeam-recycling/
-├── api/                          # Backend API endpoints
-│   ├── admin/                    # Admin-specific APIs
-│   ├── auth/                     # Authentication APIs
-│   ├── recycling/                # Scanning and recycling APIs
-│   ├── rewards/                  # Rewards management APIs
-│   └── user/                     # User data APIs
-
-├── assets/                       # Frontend assets
-│   ├── css/                      # Stylesheets
-│   ├── js/                       # JavaScript files
-│   ├── images/                   # Image assets
-│   └── *.html                    # HTML pages
-
-├── includes/                     # PHP includes and utilities
-│   ├── db_connect.php           # Database connection
-│   ├── auth.php                 # Authentication functions
-│   └── *.php                    # Other utility files
-├── components/                   # Reusable UI components
-
-├── index.html                   # Main entry point
-├── setup_database.php           # Database setup script
-└── README.md                    # This file
-\`\`\`
-
 ## 🔧 Configuration Options
 
 ### Database Configuration
