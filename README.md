@@ -152,16 +152,19 @@ adbeam-recycling/
 │   ├── recycling/                # Scanning and recycling APIs
 │   ├── rewards/                  # Rewards management APIs
 │   └── user/                     # User data APIs
+
 ├── assets/                       # Frontend assets
 │   ├── css/                      # Stylesheets
 │   ├── js/                       # JavaScript files
 │   ├── images/                   # Image assets
 │   └── *.html                    # HTML pages
+
 ├── includes/                     # PHP includes and utilities
 │   ├── db_connect.php           # Database connection
 │   ├── auth.php                 # Authentication functions
 │   └── *.php                    # Other utility files
 ├── components/                   # Reusable UI components
+
 ├── index.html                   # Main entry point
 ├── setup_database.php           # Database setup script
 └── README.md                    # This file
